@@ -48,7 +48,21 @@ namespace Xamarin.Auth
 
         protected override AuthenticateUIType GetPlatformUI()
 		{
-			
+			//Random r = new Random();
+			//string key;
+
+            //do
+            //{
+            //	key = "xamarin_auth_" + r.Next();
+            //} while (PhoneApplicationService.Current.State.ContainsKey(key));
+            //
+            //PhoneApplicationService.Current.State[key] = this;
+
+
+            //System.Reflection.Assembly assembly = typeof(Authenticator).Assembly;
+            //string assembly_name = assembly.GetName().Name;
+            //return new Uri("/" + assembly_name + ";component/WebAuthenticatorPage.xaml?key=" + key, UriKind.Relative);
+
             return typeof(WebAuthenticatorPage);
 		}
 	}
