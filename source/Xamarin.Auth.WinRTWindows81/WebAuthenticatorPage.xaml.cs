@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
@@ -22,49 +23,41 @@ namespace Xamarin.Auth
     /// </summary>
     public sealed partial class WebAuthenticatorPage : Page
     {
+        OAuth2Authenticator _auth;
         public WebAuthenticatorPage()
         {
             this.InitializeComponent();
+
+            this.browser.LoadCompleted += browser_LoadCompleted;
         }
 
      
         protected override async void OnNavigatedTo(NavigationEventArgs e)
         {
-            OAuth2Authenticator auth = (OAuth2Authenticator) e.Parameter;
+            _auth = (OAuth2Authenticator) e.Parameter;
 
-            auth.Completed += auth_Completed;
-            auth.Error += OnAuthError;
+            _auth.Completed += auth_Completed;
 
-            Uri uri = await auth.GetInitialUrlAsync();
+            Uri uri = await _auth.GetInitialUrlAsync();
+            Debug.WriteLine(uri.AbsoluteUri);
             this.browser.Source = uri;
+            browser.Navigate(uri);
 
-            /*
-            string key = NavigationContext.QueryString["key"];
+            _auth.OnPageLoading(uri);
+            _auth.OnPageLoaded(uri);
 
-            this.auth = (WebAuthenticator)PhoneApplicationService.Current.State[key];
-            //this.auth.Completed += (sender, args) => NavigationService.GoBack(); // throws on BackButton
-            this.auth.Completed += auth_Completed;
-            this.auth.Error += OnAuthError;
-
-            PhoneApplicationService.Current.State.Remove(key);
-
-            if (this.auth.ClearCookiesBeforeLogin)
-                await this.browser.ClearCookiesAsync();
-
-            Uri uri = await this.auth.GetInitialUrlAsync();
-            this.browser.Source = uri;
-            */
             base.OnNavigatedTo(e);
         }
-
-        private void OnAuthError(object sender, AuthenticatorErrorEventArgs e)
-        {
-            throw new NotImplementedException();
-        }
-
+        
         private void auth_Completed(object sender, AuthenticatorCompletedEventArgs e)
         {
-            throw new NotImplementedException();
+            try
+            {
+                //try to manually go back, might not work based on navigation method
+                if (this.Frame.CanGoBack)
+                    this.Frame.GoBack();
+            }
+            catch { }
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
@@ -73,5 +66,13 @@ namespace Xamarin.Auth
 
             return;
         }
+
+
+        void browser_LoadCompleted(object sender, NavigationEventArgs e)
+        {
+            _auth.OnPageLoaded(e.Uri);
+            Debug.WriteLine(e.Uri.AbsoluteUri);
+        }
+                
     }
 }
